@@ -22,9 +22,10 @@ Route::post('user/polyDetail', 'PolyController@indexPolyDetail');
 Route::get('user/shuttle', 'ShuttleBusController@indexShuttle');
 Route::post('user/shuttleDetail', 'ShuttleBusController@indexShuttleDetail');
 Route::get('user/faq', 'FaqController@index');
+Route::post('user/berita', 'BeritaController@index');
 
 Route::group(['middleware' => 'jwt.verify'], function () {
-    Route::get('user/logout', 'ApiController@logout');
+    Route::post('user/logout', 'ApiController@logout');
 
     Route::get('user/user', 'ApiController@getAuthUser');
 

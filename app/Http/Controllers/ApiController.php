@@ -30,9 +30,9 @@ class ApiController extends Controller
 
 
 
-//                Mail::send('email.mails', ['nama' => $request->email, 'pesan' => 'admin123'], function ($message) use ($request)
+//                Mail::send('mail', ['nama' => $request->email, 'pesan' => 'admin123'], function ($message) use ($request)
 //                {
-//                    $message->from('odhiahmad15@gmail.com', 'Odhi');
+//                    $message->from('rsud.pp@padangpanjang.go.id', 'RSUD PADANG PANJANG');
 //                    $message->to($request->email);
 //                });
 
@@ -42,7 +42,7 @@ class ApiController extends Controller
                     'success' => true,
                     'id' => $user->id,
                     'name' => $user->name,
-                    'message' => 'Selamat akun anda sudah terdaftar'
+                    'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
                 ], 200);
 
 
@@ -67,15 +67,41 @@ class ApiController extends Controller
                 'success' => false,
                 'message' => 'Invalid Email or Password',
             ], 401);
+        }else{
+            $getUser = User::where('email',$request->email)->first();
+
+            if($getUser->login === 1){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User ini telah login pada perangkat lain',
+                ], 401);
+            }else{
+                $user = new User();
+
+                $data = [
+                    'login' => 1,
+                ];
+
+                if ($user->where('id', $getUser->id)->update($data)) {
+                    return response()->json([
+                        'success' => true,
+                        'token' => $jwt_token,
+                    ]);
+                } else {
+                    return response()->json([
+                        'message' => 'Gangguan Jaringan',
+                        'success' => false,
+                    ], 401);
+                }
+
+            }
+
         }
 
 
 
 
-        return response()->json([
-            'success' => true,
-            'token' => $jwt_token,
-        ]);
+
     }
 
     public function logout(Request $request)
