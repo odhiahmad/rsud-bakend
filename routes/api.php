@@ -23,6 +23,7 @@ Route::get('user/shuttle', 'ShuttleBusController@indexShuttle');
 Route::post('user/shuttleDetail', 'ShuttleBusController@indexShuttleDetail');
 Route::get('user/faq', 'FaqController@index');
 Route::post('user/berita', 'BeritaController@index');
+Route::post('user/konfirmasiNomorMr', 'PasienController@konfirmasiNomorMr');
 
 Route::group(['middleware' => 'jwt.verify'], function () {
     Route::post('user/logout', 'ApiController@logout');
