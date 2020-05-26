@@ -105,4 +105,170 @@ class PasienController extends Controller
         }
 
     }
+
+    public function cekKtp(Request $request)
+    {
+        $cekKtp = Pasien::where('no_ktp', $request->nik)->count();
+
+        if ($cekKtp === 0) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'KTP anda sudah terdaftar pada akun lain'
+            ], 200);
+        }
+    }
+
+    public function tambahDataProfil(Request $request)
+    {
+        $getPasien = Pasien::where('id_user', $request->id)->first();
+        $tahunLahir = substr($getPasien->tgl_lahir, 0, 4);
+
+
+        $pasien = new Pasien();
+        $jenisKelamin = '';
+        if ($request->jenisKelamin === 'L') {
+            $jenisKelamin = 1;
+        } else {
+            $jenisKelamin = 2;
+        }
+        $data = [
+            'no_ktp' => $request->nik,
+            'nama' => $request->nama,
+            'tgl_lahir' => $request->tanggalLahir,
+            'jns_kelamin' => $jenisKelamin,
+            'no_bpjs' => $request->noKartu,
+            'no_telpon' => $request->no_telpon,
+        ];
+
+        if ($pasien->where('id_user', $request->id)->update($data)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Selamat bpjs anda sudah didaftarkan ke dalam sistem'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Koneksi Bermasalah'
+            ], 200);
+        }
+
+
+    }
+
+    public function updateProfil(Request $request)
+    {
+        $getPasien = Pasien::where('id_user', $request->id)->first();
+        $tahunLahir = substr($request->tanggalLahir, 0, 10);
+
+        $pasien = new Pasien();
+
+        $data = [
+            'jns_kelamin' => $request->jenisKelamin,
+            'status_kawin' => $request->statusKawin,
+            'tgl_lahir' => $tahunLahir,
+            'no_telpon' => $request->noTelpon,
+            'tempat_lahir' => $request->tempatLahir,
+            'nama' => $request->nama,
+            'pekerjaan' => $request->pekerjaan,
+            'no_ktp' => $request->nik,
+            'nama_provinsi' => $request->pilihProvinsi,
+            'nama_kab_kota' => $request->pilihKota,
+            'nama_kecamatan' => $request->pilihKecamatan,
+            'nama_kelurahan' => $request->pilihDesa,
+            'suku' => $request->pilihSuku,
+            'bahasa' => $request->pilihBahasa,
+            'nama_negara' => $request->pilihNegara,
+            'agama' => $request->agama,
+            'kewarganegaraan' => $request->pilihWn,
+            'alamat' => $request->alamat,
+            'penanggung_jawab' => $request->penanggungJawab,
+            'no_penanggung_jawab' => $request->noHpPenanggungJawab,
+            'no_bpjs' => $request->noBpjs,
+        ];
+
+        if ($pasien->where('id_user', $request->id)->update($data)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Selamat data profil anda sudah diinputkan'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Koneksi Bermasalah'
+            ], 200);
+        }
+    }
+
+    public function updateProfilLengkapiPendaftaran(Request $request)
+    {
+        $getPasien = Pasien::where('nomr', $request->id)->first();
+        $tahunLahir = substr($request->tanggalLahir, 0, 10);
+
+        $pasien = new Pasien();
+
+        $data = [
+            'jns_kelamin' => $request->jenisKelamin,
+            'status_kawin' => $request->statusKawin,
+            'tgl_lahir' => $tahunLahir,
+            'no_telpon' => $request->noTelpon,
+            'tempat_lahir' => $request->tempatLahir,
+            'nama' => $request->nama,
+            'pekerjaan' => $request->pekerjaan,
+            'no_ktp' => $request->nik,
+            'nama_provinsi' => $request->pilihProvinsi,
+            'nama_kab_kota' => $request->pilihKota,
+            'nama_kecamatan' => $request->pilihKecamatan,
+            'nama_kelurahan' => $request->pilihDesa,
+            'suku' => $request->pilihSuku,
+            'bahasa' => $request->pilihBahasa,
+            'nama_negara' => $request->pilihNegara,
+            'agama' => $request->agama,
+            'kewarganegaraan' => $request->pilihWn,
+            'alamat' => $request->alamat,
+        ];
+
+        if ($pasien->where('idx', $getPasien->idx)->update($data)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Selamat data profil anda sudah diinputkan'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Koneksi Bermasalah'
+            ], 200);
+        }
+
+
+    }
+
+    public function updatePassword(Request $request)
+    {
+
+        $user = User::findOrFail($request->id);
+
+        if (Hash::check($request->passwordLama, $user->password)) {
+            $user->fill([
+                'password' => Hash::make($request->passwordBaru)
+            ])->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password berhasil diubah'
+            ], 200);
+
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password lama yang anda masukan salah'
+            ], 200);
+        }
+
+
+    }
 }

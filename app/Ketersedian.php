@@ -15,6 +15,6 @@ class Ketersedian extends Model
     }
 
     public function getRuanganKetersedian() {
-        return $this->hasMany('App\Ruangan',"grId","map_kamarid");
+        return $this->hasOne('App\Ruangan',"grId","map_kamarid");
     }
 }

@@ -6,16 +6,55 @@ use App\Http\Requests\RegisterAuthRequest;
 use App\Pasien;
 use App\User;
 use Illuminate\Support\Facades\Hash;
+use Intervention\Image\Facades\Image;
 use Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use JWTAuth;
+use Illuminate\Support\Facades\Response;
+
+
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class ApiController extends Controller
 {
     public $loginAfterSignUp = true;
 
+    public function updatePhoto(Request $request){
+        $getUser = User::where('id',$request->id)->first();
+        $getPasien = Pasien::where('id_user',$request->id)->first();
+
+        $currentPhoto = $getUser->foto;
+
+        if ($request->photo != $currentPhoto) {
+            $name = $getPasien->no_ktp.'.jpg';
+
+            Image::make($request->photo)->save(public_path('img/profile/') . $name);
+            $request->merge(['photo' => $name]);
+
+            $userPhoto = public_path('img/profile/') . $currentPhoto;
+//            if (file_exists($userPhoto)) {
+//                @unlink($userPhoto);
+//            }
+        }
+
+        $data = [
+            'foto' => $request->photo,
+        ];
+
+        $user = new Pasien();
+        if ($user->where('id_user', $request->id)->update($data)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto anda berhasil di upload'
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Foto anda gagal di upload'
+            ], 200);
+        }
+    }
     public function register(Request $request)
     {
 
@@ -28,18 +67,41 @@ class ApiController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
 
-            if ($user->save()) {
-                $pasien = new Pasien();
-                $pasien->id_user = $user->id;
-                $pasien->nama = $user->name;
-                $pasien->save();
 
-                return response()->json([
-                    'success' => true,
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
-                ], 200);
+
+            if ($user->save()) {
+                if($request->nomorMr != null){
+                    $pasien = new Pasien();
+                    $tes = Pasien::where('nomr',$request->nomorMr)->first();
+
+                    $data = [
+                        'id_user'=>$user->id,
+                        'nama' => $user->name
+                    ];
+
+                    if($pasien->where('nomr', $request->nomorMr)->update($data)){
+                        return response()->json([
+                            'success' => true,
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
+                        ], 200);
+                    }
+
+                }else{
+                    $pasien = new Pasien();
+                    $pasien->id_user = $user->id;
+                    $pasien->nama = $user->name;
+                    $pasien->save();
+
+                    return response()->json([
+                        'success' => true,
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
+                    ], 200);
+                }
+
 
             } else {
                 return response()->json([
@@ -63,12 +125,47 @@ class ApiController extends Controller
 
     }
 
+    public function indexCekNomorKtpBpjs(Request $request)
+    {
+        if (strlen($request->nomor) == 16) {
+            $getPasien = Pasien::where('no_ktp', $request->nomor)->count();
+            if ($getPasien == 0) {
+                return response()->json([
+                    'jenis' => 'nik',
+                    'status' => true,
+                ], 401);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Nomor NIK Sudah terdaftar di aplikasi',
+                ], 401);
+            }
+        } else if (strlen($request->nomor) == 13) {
+            $getPasien = Pasien::where('no_bpjs', $request->nomor)->count();
+            if ($getPasien == 0) {
+                return response()->json([
+                    'jenis' => 'nokartu',
+                    'status' => true,
+                ], 401);
+            } else {
+                return response()->json([
+                    'jenis' => 'nobpjs',
+                    'status' => false,
+                    'message' => 'Nomor BPJS Sudah terdaftar di aplikasi',
+                ], 401);
+            }
+
+        }
+
+    }
 
     public function login(Request $request)
     {
         $input = $request->only('email', 'password');
         $jwt_token = null;
 
+
+        JWTAuth::factory()->setTTL(999999999999999999);
         if (!$jwt_token = JWTAuth::attempt($input)) {
             return response()->json([
                 'success' => false,
@@ -76,6 +173,7 @@ class ApiController extends Controller
             ], 401);
         } else {
             $getUser = User::where('email', $request->email)->first();
+            $getPasien = Pasien::where('id_user', $getUser->id)->first();
 
             if ($getUser->login == 1) {
                 return response()->json([
@@ -83,27 +181,21 @@ class ApiController extends Controller
                     'message' => 'User ini telah login pada perangkat lain',
                 ], 401);
             } else {
-                if ($getUser->nomr == 0) {
-                    $user = new User();
+                if ($getPasien->nomr ==  0) {
 
+                    $user = new User();
                     $data = [
                         'login' => 1,
                     ];
 
                     if ($user->where('id', $getUser->id)->update($data)) {
-                        if($getUser->nomr == 0){
-                            return response()->json([
-                                'success' => true,
-                                'status' => true,
-                                'token' => $jwt_token,
-                            ]);
-                        }else{
-                            return response()->json([
-                                'success' => true,
-                                'status' => false,
-                                'token' => $jwt_token,
-                            ]);
-                        }
+                        return response()->json([
+                            'success' => true,
+                            'status' => true,
+                            'id' => $getUser->id,
+                            'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
+                        ]);
 
                     } else {
                         return response()->json([
@@ -121,7 +213,10 @@ class ApiController extends Controller
                     if ($user->where('id', $getUser->id)->update($data)) {
                         return response()->json([
                             'success' => true,
+                            'status' => false,
+                            'id' => $getUser->id,
                             'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
                         ]);
                     } else {
                         return response()->json([
@@ -151,22 +246,12 @@ class ApiController extends Controller
         ];
 
         if ($user->where('id', $getUser->id)->update($data)) {
-            $this->validate($request, [
-                'token' => 'required'
-            ]);
-            try {
-                JWTAuth::invalidate($request->token);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User logged out successfully'
-                ]);
-            } catch (JWTException $exception) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Sorry, the user cannot be logged out'
-                ], 500);
-            }
+            return response()->json([
+                'success' => true,
+                'message' => 'User logged out successfully'
+            ]);
+
         } else {
             return response()->json([
                 'message' => 'Gangguan Jaringan',
@@ -201,18 +286,14 @@ class ApiController extends Controller
 
         $getUser = compact('user');
 
-        if ($getUser['user']['nomr'] === 0) {
-            return response()->json([
-                'dataUser' => compact('user'),
-                'dataProfile' => ['data']
-            ], 401);
-        } else {
-            $getPasien = Pasien::where('nomr', $getUser['user']['nomr'])->first();
-            return response()->json([
-                'dataUser' => compact('user'),
-                'dataProfile' => $getPasien,
-            ], 401);
-        }
+
+        $getPasien = Pasien::where('id_user', $getUser['user']['id'])->first();
+        $path = public_path().'/img/profile/'.$getUser['user']['foto'];
+        return response()->json([
+            'dataUser' => compact('user'),
+            'dataProfile' => $getPasien,
+            'image'     => asset('img/profile/' . $getPasien['foto']),
+        ], 401);
 
 
     }
