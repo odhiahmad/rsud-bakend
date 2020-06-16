@@ -54,10 +54,12 @@ Route::post('user/cekKtp', 'PasienController@cekKtp');
 Route::get('user/rujukan', 'RujukanController@index');
 
 Route::post('user/logout', 'ApiController@logout');
+Route::get('user/sendNotification', 'SendNotificationController@sendNotification');
+Route::get('user/liburDokter', 'ApiController@liburDokter');
 
 
 Route::group(['middleware' => 'jwt.verify'], function () {
-
+    Route::post('user/updateToken', 'SendNotificationController@updateToken');
     Route::post('user/getProfilDaftar', 'PendaftaranController@getProfilDaftar');
     Route::post('user/cekDaftar', 'PendaftaranController@indexStatus');
     Route::post('user/getUserLengkapiPendaftaran', 'PendaftaranController@getUserLengkapiPendaftaran');
@@ -65,6 +67,7 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::post('user/simpanNomr', 'PendaftaranController@simpanNomr');
     Route::post('user/cariNomorMr', 'PendaftaranController@cariNomorMr');
     Route::post('user/daftar', 'PendaftaranController@daftar');
+    Route::post('user/daftarPasienBaru', 'PendaftaranController@daftarPasienBaru');
     Route::post('user/getRiwayatPendaftaran', 'PendaftaranController@index');
 
     Route::post('user/updatePassword', 'PasienController@updatePassword');
@@ -73,6 +76,15 @@ Route::group(['middleware' => 'jwt.verify'], function () {
 
     Route::post('user/updatePhoto', 'ApiController@updatePhoto');
     Route::get('user/user', 'ApiController@getAuthUser');
+    Route::post('user/updateStatusLogin', 'ApiController@updateStatusLogin');
 
     Route::post('user/pengaduan', 'PengaduanController@index');
+    Route::post('user/inputPengaduan', 'PengaduanController@inputPengaduan');
+
+    Route::post('user/getNotifikasi', 'ApiController@getNotifikasi');
+    Route::post('user/getDataDashboard', 'ApiController@getDataDashboard');
+
+    Route::post('user/getNotifikasiObat', 'NotifikasiObatController@index');
+    Route::post('user/getNotifikasiObatDetail', 'NotifikasiObatController@indexDetail');
+
 });

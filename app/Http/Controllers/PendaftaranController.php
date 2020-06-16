@@ -103,7 +103,6 @@ class PendaftaranController extends Controller
         }
     }
 
-
     public function getProfilDaftar(Request $request)
     {
         if ($getUser = Pasien::where('id_user', $request->id)->first()) {
@@ -141,6 +140,207 @@ class PendaftaranController extends Controller
 
     }
 
+    public function daftarPasienBaru(Request $request)
+    {
+        $pendaftaran = new Pendaftaran();
+        $pasien = new Pasien();
+
+        $tanggal = substr($request->tanggalKunjungan, 0, 10);
+        $tahunLahir = substr($request->tanggalLahir, 0, 10);
+        $cekJumlah = Pendaftaran::where(['tanggal_kunjungan' => $tanggal, 'jam_kunjungan' => $request->jamKunjungan])->count();
+        $cekDataPasien = Pasien::where(['no_ktp'=>$request->nik])->count();
+        $nomorAntrian = $cekJumlah + 1;
+        $jamAntrian = $nomorAntrian * 10;
+        $jamKunjunganLabelSub = substr($request->pilihJamLabel, 0, 3);
+        $jamKunjunganLabel = $jamKunjunganLabelSub . $jamAntrian . ':00';
+        $jam = substr($request->tanggalKunjungan, 11, 8);
+        $tanggalDaftar = $tanggal . ' ' . $request->jamKunjungan;
+        if($cekDataPasien == 0){
+            if ($request->noBpjs != null) {
+                $cekBpjsDaftar = Pendaftaran::where(['tanggal_kunjungan' => $tanggal, 'no_bpjs' => $request->noBpjs])->count();
+                if ($cekBpjsDaftar == 0) {
+                    $cekDaftar = Pendaftaran::where(['no_ktp' => $request->nomorKtp, 'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+
+                    if ($cekDaftar == 0) {
+                        $cekKuotaDaftar = Pendaftaran::where(['jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+                        if ($cekKuotaDaftar <= 10) {
+
+                            $pendaftaran->idUserDaftar = $request->idUser;
+                            $pendaftaran->nomor_daftar = $nomorAntrian;
+                            $pendaftaran->no_ktp = $request->nomorKtp;
+                            $pendaftaran->nama_pasien = $request->namaPasien;
+                            $pendaftaran->tempat_lahir = $request->tempatLahir;
+                            $pendaftaran->tgl_lahir =$tahunLahir;
+                            $pendaftaran->jns_kelamin = $request->jenisKelamin;
+                            $pendaftaran->jns_layanan = 'RJ';
+                            $pendaftaran->tgl_masuk = $tanggalDaftar;
+                            $pendaftaran->tanggal_kunjungan = $tanggal;
+                            $pendaftaran->jam_kunjungan = $request->jamKunjungan;
+                            $pendaftaran->id_ruang = $request->idRuang;
+                            $pendaftaran->nama_ruang = $request->namaRuang;
+                            $pendaftaran->id_cara_bayar = $request->idCaraBayar;
+                            $pendaftaran->cara_bayar = $request->pilihCaraBayar;
+                            $pendaftaran->dokterJaga = $request->pilihNrp;
+                            $pendaftaran->jam_kunjunganLabel = $request->pilihJamLabel;
+                            $pendaftaran->jam_kunjunganAntrian = $jamKunjunganLabel;
+                            $pendaftaran->namaDokterJaga = $request->pilihDokter;
+                            $pendaftaran->status_berobat = 'Mendaftar';
+                            $pendaftaran->no_bpjs = $request->noBpjs;
+                            $pendaftaran->no_jaminan = $request->nomorRujukan;
+                            $pendaftaran->id_kelas = $request->idKelas;
+                            $pendaftaran->kelas_layanan = $request->kelas;
+
+
+                            $pasien->jns_kelamin = $request->jenisKelamin;
+                            $pasien->status_kawin = $request->statusKawin;
+                            $pasien->tgl_lahir = $tahunLahir;
+                            $pasien->no_telpon = $request->noTelpon;
+                            $pasien->tempat_lahir = $request->tempatLahir;
+                            $pasien->nama = $request->nama;
+                            $pasien->pekerjaan = $request->pekerjaan;
+                            $pasien->no_ktp = $request->nik;
+                            $pasien->nama_provinsi = $request->pilihProvinsi;
+                            $pasien->nama_kab_kota = $request->pilihKota;
+                            $pasien->nama_kecamatan = $request->pilihKecamatan;
+                            $pasien->nama_kelurahan = $request->pilihDesa;
+                            $pasien->suku = $request->pilihSuku;
+                            $pasien->bahasa = $request->pilihBahasa;
+                            $pasien->nama_negara = $request->pilihNegara;
+                            $pasien->agama = $request->agama;
+                            $pasien->kewarganegaraan = $request->pilihWn;
+                            $pasien->alamat = $request->alamat;
+                            $pasien->penanggung_jawab = $request->penanggungJawab;
+                            $pasien->no_penanggung_jawab = $request->noHpPenanggungJawab;
+                            $pasien->no_bpjs = $request->noBpjs;
+
+                            if ($pendaftaran->save() && $pasien->save()) {
+                                return [
+                                    'message' => 'Berhasil Mendaftar',
+                                    'data' => $pendaftaran,
+                                    'success' => true
+                                ];
+                            } else {
+                                return [
+                                    'message' => 'Gagal Mendaftar',
+                                    'data' => [],
+                                    'success' => false
+                                ];
+                            }
+                        } else {
+                            return [
+                                'message' => 'Kuota sudah penuh pada Ruang, Tanggal, dan Jam yang anda Pilih',
+                                'data' => [],
+                                'success' => false
+                            ];
+                        }
+
+                    } else {
+                        return [
+                            'message' => 'Gagal Mendaftar, Anda sudah mendaftar di Jam, Hari, dan Poli yang sama ',
+                            'data' => [],
+                            'success' => false
+                        ];
+                    }
+
+                } else {
+                    return [
+                        'message' => 'Gagal Mendaftar, Anda sudah mendaftar dengan BPJS pada tanggal ' . $tanggal,
+                        'data' => [],
+                        'success' => false
+                    ];
+                }
+
+
+            } else {
+                $cekDaftar = Pendaftaran::where(['no_ktp' => $request->nomorKtp, 'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+                if ($cekDaftar == 0) {
+                    $cekKuotaDaftar = Pendaftaran::where(['jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+                    if ($cekKuotaDaftar <= 10) {
+                        $pendaftaran->idUserDaftar = $request->idUser;
+                        $pendaftaran->nomor_daftar = $nomorAntrian;
+                        $pendaftaran->no_ktp = $request->nomorKtp;
+                        $pendaftaran->nama_pasien = $request->namaPasien;
+                        $pendaftaran->tempat_lahir = $request->tempatLahir;
+                        $pendaftaran->tgl_lahir = $tahunLahir;
+                        $pendaftaran->jns_kelamin = $request->jenisKelamin;
+                        $pendaftaran->jns_layanan = 'RJ';
+                        $pendaftaran->tgl_masuk = $tanggalDaftar;
+                        $pendaftaran->tanggal_kunjungan = $tanggal;
+                        $pendaftaran->jam_kunjungan = $request->jamKunjungan;
+                        $pendaftaran->id_ruang = $request->idRuang;
+                        $pendaftaran->nama_ruang = $request->namaRuang;
+                        $pendaftaran->id_cara_bayar = $request->idCaraBayar;
+                        $pendaftaran->cara_bayar = $request->pilihCaraBayar;
+                        $pendaftaran->dokterJaga = $request->pilihNrp;
+                        $pendaftaran->jam_kunjunganLabel = $request->pilihJamLabel;
+                        $pendaftaran->jam_kunjunganAntrian = $jamKunjunganLabel;
+                        $pendaftaran->namaDokterJaga = $request->pilihDokter;
+                        $pendaftaran->status_berobat = 'Mendaftar';
+
+                        $pasien->jns_kelamin = $request->jenisKelamin;
+                        $pasien->status_kawin = $request->statusKawin;
+                        $pasien->tgl_lahir = $tahunLahir;
+                        $pasien->no_telpon = $request->noTelpon;
+                        $pasien->tempat_lahir = $request->tempatLahir;
+                        $pasien->nama = $request->nama;
+                        $pasien->pekerjaan = $request->pekerjaan;
+                        $pasien->no_ktp = $request->nik;
+                        $pasien->nama_provinsi = $request->pilihProvinsi;
+                        $pasien->nama_kab_kota = $request->pilihKota;
+                        $pasien->nama_kecamatan = $request->pilihKecamatan;
+                        $pasien->nama_kelurahan = $request->pilihDesa;
+                        $pasien->suku = $request->pilihSuku;
+                        $pasien->bahasa = $request->pilihBahasa;
+                        $pasien->nama_negara = $request->pilihNegara;
+                        $pasien->agama = $request->agama;
+                        $pasien->kewarganegaraan = $request->pilihWn;
+                        $pasien->alamat = $request->alamat;
+                        $pasien->penanggung_jawab = $request->penanggungJawab;
+                        $pasien->no_penanggung_jawab = $request->noHpPenanggungJawab;
+                        $pasien->no_bpjs = $request->noBpjs;
+
+                        if ($pendaftaran->save() && $pasien->save()) {
+                            return [
+                                'message' => 'Berhasil Mendaftar',
+                                'data' => $pendaftaran,
+                                'success' => true
+                            ];
+                        } else {
+                            return [
+                                'message' => 'Gagal Mendaftar',
+                                'data' => [],
+                                'success' => false
+                            ];
+                        }
+                    } else {
+                        return [
+                            'message' => 'Kuota sudah penuh pada Ruang, Tanggal, dan Jam yang anda Pilih',
+                            'data' => [],
+                            'success' => false
+                        ];
+                    }
+
+                } else {
+                    return [
+                        'message' => 'Gagal Mendaftar, Anda sudah mendaftar di Jam, Hari, dan Poli yang sama ',
+                        'data' => [],
+                        'success' => false
+                    ];
+                }
+
+            }
+        }else{
+            return [
+                'message' => 'Gagal Mendaftar, Anda sudah mendaftar dengan nomor KTP yang sama, silahkan ambil nomor MR Anda',
+                'data' => [],
+                'success' => false
+            ];
+        }
+
+
+
+    }
+
     public function daftar(Request $request)
     {
         $pendaftaran = new Pendaftaran();
@@ -157,11 +357,11 @@ class PendaftaranController extends Controller
         if ($request->noBpjs != null) {
             $cekBpjsDaftar = Pendaftaran::where(['tanggal_kunjungan' => $tanggal, 'no_bpjs' => $request->noBpjs])->count();
             if ($cekBpjsDaftar == 0) {
-                $cekDaftar = Pendaftaran::where(['no_ktp'=>$request->nomorKtp,'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+                $cekDaftar = Pendaftaran::where(['no_ktp' => $request->nomorKtp, 'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
 
-                if($cekDaftar == 0){
+                if ($cekDaftar == 0) {
                     $cekKuotaDaftar = Pendaftaran::where(['jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
-                    if($cekKuotaDaftar <= 10){
+                    if ($cekKuotaDaftar <= 10) {
                         $pendaftaran->idUserDaftar = $request->idUser;
                         $pendaftaran->nomr = $request->nomorMr;
                         $pendaftaran->nomor_daftar = $nomorAntrian;
@@ -201,7 +401,7 @@ class PendaftaranController extends Controller
                                 'success' => false
                             ];
                         }
-                    }else{
+                    } else {
                         return [
                             'message' => 'Kuota sudah penuh pada Ruang, Tanggal, dan Jam yang anda Pilih',
                             'data' => [],
@@ -209,7 +409,7 @@ class PendaftaranController extends Controller
                         ];
                     }
 
-                }else{
+                } else {
                     return [
                         'message' => 'Gagal Mendaftar, Anda sudah mendaftar di Jam, Hari, dan Poli yang sama ',
                         'data' => [],
@@ -227,10 +427,10 @@ class PendaftaranController extends Controller
 
 
         } else {
-            $cekDaftar = Pendaftaran::where(['no_ktp'=>$request->nomorKtp,'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
-            if($cekDaftar == 0){
+            $cekDaftar = Pendaftaran::where(['no_ktp' => $request->nomorKtp, 'jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
+            if ($cekDaftar == 0) {
                 $cekKuotaDaftar = Pendaftaran::where(['jam_kunjungan' => $request->jamKunjungan, 'tanggal_kunjungan' => $tanggal, 'id_ruang' => $request->idRuang])->count();
-                if($cekKuotaDaftar <= 10){
+                if ($cekKuotaDaftar <= 10) {
                     $pendaftaran->idUserDaftar = $request->idUser;
                     $pendaftaran->nomr = $request->nomorMr;
                     $pendaftaran->nomor_daftar = $nomorAntrian;
@@ -266,7 +466,7 @@ class PendaftaranController extends Controller
                             'success' => false
                         ];
                     }
-                }else{
+                } else {
                     return [
                         'message' => 'Kuota sudah penuh pada Ruang, Tanggal, dan Jam yang anda Pilih',
                         'data' => [],
@@ -274,7 +474,7 @@ class PendaftaranController extends Controller
                     ];
                 }
 
-            }else{
+            } else {
                 return [
                     'message' => 'Gagal Mendaftar, Anda sudah mendaftar di Jam, Hari, dan Poli yang sama ',
                     'data' => [],

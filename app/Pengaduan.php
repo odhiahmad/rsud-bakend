@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengaduan extends Model
 {
-    protected $table = 'trx_pengaduan';
+    protected $table = 'pengaduan_masyarakat';
 }
