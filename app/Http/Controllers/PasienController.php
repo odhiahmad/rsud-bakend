@@ -206,7 +206,7 @@ class PasienController extends Controller
 
     public function updateProfilLengkapiPendaftaran(Request $request)
     {
-        $getPasien = Pasien::where('nomr', $request->id)->first();
+        $getPasien = Pasien::where('id_user', $request->id)->first();
         $tahunLahir = substr($request->tanggalLahir, 0, 10);
 
         $pasien = new Pasien();
@@ -217,7 +217,6 @@ class PasienController extends Controller
             'tgl_lahir' => $tahunLahir,
             'no_telpon' => $request->noTelpon,
             'tempat_lahir' => $request->tempatLahir,
-            'nama' => $request->nama,
             'pekerjaan' => $request->pekerjaan,
             'no_ktp' => $request->nik,
             'nama_provinsi' => $request->pilihProvinsi,
@@ -230,9 +229,12 @@ class PasienController extends Controller
             'agama' => $request->agama,
             'kewarganegaraan' => $request->pilihWn,
             'alamat' => $request->alamat,
+            'penanggung_jawab' => $request->penanggungJawab,
+            'no_penanggung_jawab' => $request->noHpPenanggungJawab,
+            'no_bpjs' => $request->noBpjs,
         ];
 
-        if ($pasien->where('idx', $getPasien->idx)->update($data)) {
+        if ($pasien->where('id_user', $request->id)->update($data)) {
             return response()->json([
                 'success' => true,
                 'message' => 'Selamat data profil anda sudah diinputkan'

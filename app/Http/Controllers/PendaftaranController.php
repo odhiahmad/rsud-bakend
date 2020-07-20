@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 
 
 use App\Agama;
+use App\CaraBayar;
 use App\Pasien;
 use App\Pendaftaran;
+use App\Poly;
 use App\SimpanNomorMr;
 use App\User;
 use Illuminate\Http\Request;
@@ -105,20 +107,19 @@ class PendaftaranController extends Controller
 
     public function getProfilDaftar(Request $request)
     {
-        if ($getUser = Pasien::where('id_user', $request->id)->first()) {
+
+       $getUser = Pasien::where('id_user', $request->id)->first();
+        $ruangan = Poly::where(['poly_status' => 'Aktif'])->get();
+        $caraBayar = CaraBayar::get();
             return [
                 'message' => 'Profil Ditemukan',
                 'data' => $getUser,
+                'dataPoly' => $ruangan,
+                'dataBayar'=>$caraBayar,
                 'image' => asset('img/profile/' . $getUser['foto']),
                 'success' => true
             ];
-        } else {
-            return [
-                'message' => 'Profil Tidak Ditemukan',
-                'data' => [],
-                'success' => false
-            ];
-        }
+
     }
 
     public function getUserLengkapiPendaftaran(Request $request)
@@ -189,7 +190,7 @@ class PendaftaranController extends Controller
                             $pendaftaran->no_jaminan = $request->nomorRujukan;
                             $pendaftaran->id_kelas = $request->idKelas;
                             $pendaftaran->kelas_layanan = $request->kelas;
-
+                            $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
 
                             $pasien->jns_kelamin = $request->jenisKelamin;
                             $pasien->status_kawin = $request->statusKawin;
@@ -276,6 +277,7 @@ class PendaftaranController extends Controller
                         $pendaftaran->jam_kunjunganAntrian = $jamKunjunganLabel;
                         $pendaftaran->namaDokterJaga = $request->pilihDokter;
                         $pendaftaran->status_berobat = 'Mendaftar';
+                        $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
 
                         $pasien->jns_kelamin = $request->jenisKelamin;
                         $pasien->status_kawin = $request->statusKawin;
@@ -387,6 +389,7 @@ class PendaftaranController extends Controller
                         $pendaftaran->no_jaminan = $request->nomorRujukan;
                         $pendaftaran->id_kelas = $request->idKelas;
                         $pendaftaran->kelas_layanan = $request->kelas;
+                        $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
 
                         if ($pendaftaran->save()) {
                             return [
@@ -452,7 +455,7 @@ class PendaftaranController extends Controller
                     $pendaftaran->jam_kunjunganAntrian = $jamKunjunganLabel;
                     $pendaftaran->namaDokterJaga = $request->pilihDokter;
                     $pendaftaran->status_berobat = 'Mendaftar';
-
+                    $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
                     if ($pendaftaran->save()) {
                         return [
                             'message' => 'Berhasil Mendaftar',

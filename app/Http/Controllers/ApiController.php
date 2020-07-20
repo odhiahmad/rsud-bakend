@@ -6,6 +6,7 @@ use App\Dokter;
 use App\DokterLibur;
 use App\Http\Requests\RegisterAuthRequest;
 use App\JadwalDokter;
+use App\Notifications\HelloUser;
 use App\Notifikasi;
 use App\Pasien;
 use App\Pendaftaran;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use JWTAuth;
 use Illuminate\Support\Facades\Response;
-
+use Illuminate\Notifications\Messages\MailMessage;
 
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -63,7 +64,7 @@ class ApiController extends Controller
         }
     }
 
-    public function liburDokter()
+    public function liburDokter(Request $request)
     {
         $date = Date('Y:m:d');
         $getUser = DokterLibur::where('libur_tgl', '=', '2019-08-31')->get();
@@ -112,6 +113,9 @@ class ApiController extends Controller
                     ];
 
                     if ($pasien->where('nomr', $request->nomorMr)->update($data)) {
+
+
+                        $user->notify(new HelloUser());
                         return response()->json([
                             'success' => true,
                             'id' => $user->id,
@@ -125,7 +129,11 @@ class ApiController extends Controller
                     $pasien->id_user = $user->id;
                     $pasien->nama = $user->name;
                     $pasien->save();
-
+                    Mail::send('mail', ['nama' => $request->email, 'pesan' => 'admin123'], function ($message) use ($request)
+                    {
+                        $message->from('rsud.pp@padangpanjang.go.id', 'RSUD PADANG PANJANG');
+                        $message->to($request->email);
+                    });
                     return response()->json([
                         'success' => true,
                         'id' => $user->id,
@@ -142,11 +150,7 @@ class ApiController extends Controller
                 ], 200);
             }
 
-//                Mail::send('mail', ['nama' => $request->email, 'pesan' => 'admin123'], function ($message) use ($request)
-//                {
-//                    $message->from('rsud.pp@padangpanjang.go.id', 'RSUD PADANG PANJANG');
-//                    $message->to($request->email);
-//                });
+
 
         } else {
             return response()->json([
@@ -321,7 +325,7 @@ class ApiController extends Controller
             'dataUser' => compact('user'),
             'dataProfile' => $getPasien,
             'image' => asset('img/profile/' . $getPasien['foto']),
-        ], 401);
+        ], 200);
 
 
     }

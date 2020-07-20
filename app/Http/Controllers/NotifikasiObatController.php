@@ -23,6 +23,8 @@ class NotifikasiObatController extends Controller
 
     }
 
+
+
     public function indexDetail(Request $request)
     {
         $obat = Obat::where(['IDPENDAFTARAN'=>$request->id])->first();

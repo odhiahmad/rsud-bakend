@@ -24,7 +24,8 @@ class WilayahController extends Controller
 
     public function indexKota(Request $request)
     {
-        $kota = Wilayah::where(['provinsi' => $request->provinsi])->select(['nama_kabkota','kabkota'])->groupBy('nama_kabkota','kabkota')->orderBy('nama_kabkota')
+        $kota = Wilayah::where(['provinsi' => $request->provinsi])->select(['nama_kabkota','kabkota'])
+            ->groupBy('nama_kabkota','kabkota')->orderByRaw("FIELD(nama_kabkota , 'Padang Panjang','Bukittinggi','Tanah Datar') DESC")
         ->get();
 
         return [

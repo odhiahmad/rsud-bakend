@@ -41,6 +41,13 @@ Route::get('user/suku', 'SukuController@index');
 
 Route::get('user/agama', 'AgamaController@index');
 
+Route::get('user/pekerjaan', 'PekerjaanController@index');
+
+Route::get('user/step1', 'ApiPendaftaranController@indexStep1');
+Route::get('user/step2', 'ApiPendaftaranController@indexStep2');
+Route::get('user/indexPendaftaranOnlineBaru', 'ApiPendaftaranController@indexPendaftaranOnlineBaru');
+
+
 Route::get('user/caraBayar', 'CaraBayarController@index');
 
 Route::get('user/bahasa', 'BahasaController@index');
@@ -55,7 +62,7 @@ Route::get('user/rujukan', 'RujukanController@index');
 
 Route::post('user/logout', 'ApiController@logout');
 Route::get('user/sendNotification', 'SendNotificationController@sendNotification');
-Route::get('user/liburDokter', 'ApiController@liburDokter');
+Route::post('user/liburDokter', 'ApiController@liburDokter');
 
 
 Route::group(['middleware' => 'jwt.verify'], function () {
@@ -86,5 +93,8 @@ Route::group(['middleware' => 'jwt.verify'], function () {
 
     Route::post('user/getNotifikasiObat', 'NotifikasiObatController@index');
     Route::post('user/getNotifikasiObatDetail', 'NotifikasiObatController@indexDetail');
+
+    Route::post('user/editProfilApi', 'ApiPendaftaranController@indexEditProfil');
+    Route::post('user/indexLengkapiProfil', 'ApiPendaftaranController@indexLengkapiProfil');
 
 });

@@ -12,7 +12,7 @@ class BahasaController extends Controller
 
     public function index()
     {
-        $bahasa = Bahasa::groupBy('bahasa_nama')->orderBy('bahasa_nama')
+        $bahasa = Bahasa::groupBy('bahasa_nama')->orderByRaw("FIELD(bahasa_nama , 'Bahasa Minang/ Minangkabau/ Padang','Melayu') ASC")
             ->selectRaw('bahasa_nama')->get();
 
         return [
