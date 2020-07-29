@@ -6,6 +6,7 @@ use App\Dokter;
 use App\DokterLibur;
 use App\Http\Requests\RegisterAuthRequest;
 use App\JadwalDokter;
+use App\kodeOtp;
 use App\Notifications\HelloUser;
 use App\Notifikasi;
 use App\Pasien;
@@ -20,7 +21,7 @@ use Illuminate\Http\Request;
 use JWTAuth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Notifications\Messages\MailMessage;
-
+use Facades\Yugo\SMSGateway\Interfaces\SMS;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class ApiController extends Controller
@@ -89,33 +90,151 @@ class ApiController extends Controller
 
     }
 
+    public function kirimOtp(Request $request)
+    {
+        $getNohp = User::where(['no_hp'=>$request->no_hp])->count();
+        if($getNohp < 1){
+            $getOtp = kodeOtp::where('no_hp',$request->no_hp)->count();
+            if($getOtp === 0){
+                $kodeotp = rand(1,9).rand(1,9).rand(1,9).rand(1,9);
+                $otp = new kodeOtp();
+                $otp->no_hp = $request->no_hp;
+                $otp->kode_konfirmasi = Hash::make($kodeotp);
+
+
+                if($otp->save() && SMS::send([$request->no_hp], 'RSUD Padang Panjang, Berikut adalah kode konfirmasi anda: ('.$kodeotp.') Jangan beri tau kode konfirmasi tersebut')){
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Silahkan masukan kode otp yang dikirim'
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jaringan bermasalah, cobalah beberapa saat lagi'
+                    ], 200);
+                }
+            }else{
+                kodeOtp::where('no_hp', $request->no_hp)->delete();
+
+                $kodeotp = rand(1,9).rand(1,9).rand(1,9).rand(1,9);
+                $otp = new kodeOtp();
+                $otp->no_hp = $request->no_hp;
+                $otp->kode_konfirmasi = Hash::make($kodeotp);
+
+
+                if($otp->save() && SMS::send([$request->no_hp], 'RSUD Padang Panjang, Berikut adalah kode konfirmasi anda: ('.$kodeotp.') Jangan beri tau kode konfirmasi tersebut')){
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Silahkan masukan kode otp yang dikirim'
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jaringan bermasalah, cobalah beberapa saat lagi'
+                    ], 200);
+                }
+            }
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => $getNohp
+            ], 200);
+        }
+
+
+
+    }
+
+    function getName($n) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $randomString = '';
+
+        for ($i = 0; $i < $n; $i++) {
+            $index = rand(0, strlen($characters) - 1);
+            $randomString .= $characters[$index];
+        }
+
+        return $randomString;
+    }
+
+    public function lupaPassword(Request $request){
+        if(is_numeric($request->email)){
+            $getUser = User::where('no_hp',$request->email)->count();
+
+            if($getUser === 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No hp yang anda masukan tidak terdaftar'
+                ], 200);
+            }else{
+                $password = $this->getName(6);
+                $user = new User();
+                $data = [
+                    'password'=>  Hash::make($password)
+                ];
+
+                if ($user->where('no_hp', $request->email)->update($data) && SMS::send([$request->email], 'RSUD Padang Panjang, Berikut adalah password anda: ('.$password.') Jangan beri tau password tersebut kepada siapapun')) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Tunggu Sejenak, Silahkan login dengan password yang telah dikirim'
+                    ], 200);
+                }else{
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jaringan bermasalah, cobalah beberapa saat lagi'
+                    ], 200);
+                }
+            }
+
+
+        }else{
+
+        }
+    }
+
     public function register(Request $request)
     {
+        $otp = kodeOtp::where('no_hp', $request->no_hp)->first();
 
-        if (User::where('email', $request->email)->count() == 0) {
-
-
-            $user = new User();
-            $user->nomr = $request->nomorMr;
-            $user->name = $request->nama;
-            $user->email = $request->email;
-            $user->password = Hash::make($request->password);
-
-
-            if ($user->save()) {
-                if ($request->nomorMr != null) {
-                    $pasien = new Pasien();
-                    $tes = Pasien::where('nomr', $request->nomorMr)->first();
-
-                    $data = [
-                        'id_user' => $user->id,
-                        'nama' => $user->name
-                    ];
-
-                    if ($pasien->where('nomr', $request->nomorMr)->update($data)) {
+        if (Hash::check($request->kode_otp, $otp->kode_konfirmasi)) {
+            if (User::where('email', $request->email)->count() == 0) {
+                $user = new User();
+                $user->nomr = $request->nomorMr;
+                $user->name = $request->nama;
+                $user->email = $request->email;
+                $user->password = Hash::make($request->password);
+                $user->no_hp = $request->no_hp;
 
 
-                        $user->notify(new HelloUser());
+                if ($user->save()) {
+                    if ($request->nomorMr != null) {
+                        $pasien = new Pasien();
+                        $tes = Pasien::where('nomr', $request->nomorMr)->first();
+
+                        $data = [
+                            'id_user' => $user->id,
+                            'nama' => $user->name,
+                            'no_telpon'=> $request->no_hp
+                        ];
+
+                        if ($pasien->where('nomr', $request->nomorMr)->update($data)) {
+//                        $user->notify(new HelloUser());
+                            return response()->json([
+                                'success' => true,
+                                'id' => $user->id,
+                                'name' => $user->name,
+                                'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
+                            ], 200);
+                        }
+
+                    } else {
+                        $pasien = new Pasien();
+                        $pasien->id_user = $user->id;
+                        $pasien->nama = $user->name;
+                        $pasien->no_telpon = $request->no_hp;
+                        $pasien->save();
+//                    $user->notify(new HelloUser());
+
                         return response()->json([
                             'success' => true,
                             'id' => $user->id,
@@ -124,21 +243,11 @@ class ApiController extends Controller
                         ], 200);
                     }
 
+
                 } else {
-                    $pasien = new Pasien();
-                    $pasien->id_user = $user->id;
-                    $pasien->nama = $user->name;
-                    $pasien->save();
-                    Mail::send('mail', ['nama' => $request->email, 'pesan' => 'admin123'], function ($message) use ($request)
-                    {
-                        $message->from('rsud.pp@padangpanjang.go.id', 'RSUD PADANG PANJANG');
-                        $message->to($request->email);
-                    });
                     return response()->json([
-                        'success' => true,
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'message' => 'Selamat akun anda sudah terdaftar, silahkan login'
+                        'success' => false,
+                        'message' => 'Koneksi Jaringan'
                     ], 200);
                 }
 
@@ -146,18 +255,16 @@ class ApiController extends Controller
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Koneksi Jaringan'
+                    'message' => 'Email Sudah terdaftar'
                 ], 200);
             }
-
-
-
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Email Sudah terdaftar'
+                'message' => 'Kode OTP Salah'
             ], 200);
         }
+
 
     }
 
@@ -195,49 +302,100 @@ class ApiController extends Controller
 
     }
 
-    public function login(Request $request)
+    public function login(Request $request){
 
-    {
-        $input = $request->only('email', 'password');
-        $jwt_token = null;
+        if(is_numeric($request->email)){
+            $input = $request->only('email', 'password');
+            $jwt_token = null;
 
-
-        JWTAuth::factory()->setTTL(999999999999999999);
-        if (!$jwt_token = JWTAuth::attempt($input)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid Email or Password',
-            ], 401);
-        } else {
-            $getUser = User::where('email', $request->email)->first();
-            $getPasien = Pasien::where('id_user', $getUser->id)->first();
-
-            if ($getUser->login == 1) {
+            $inputTes = [
+              'no_hp'=>$request->email,
+              'password'=>$request->password
+            ];
+            JWTAuth::factory()->setTTL(999999999999999999);
+            if (!$jwt_token = JWTAuth::attempt($inputTes)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User ini telah login pada perangkat lain',
+                    'message' => 'Invalid No HP atau Password',
                 ], 401);
             } else {
-                if ($getPasien->no_ktp == 0) {
-                    return response()->json([
-                        'success' => true,
-                        'status' => true,
-                        'id' => $getUser->id,
-                        'token' => $jwt_token,
-                        'expires_in' => JWTAuth::factory()->getTTL() * 60
-                    ]);
-                } else {
+                $getUser = User::where('no_hp', $request->email)->first();
+                $getPasien = Pasien::where('id_user', $getUser->id)->first();
 
+                if ($getUser->login == 1) {
                     return response()->json([
-                        'success' => true,
-                        'status' => false,
-                        'id' => $getUser->id,
-                        'token' => $jwt_token,
-                        'expires_in' => JWTAuth::factory()->getTTL() * 60
-                    ]);
+                        'success' => false,
+                        'message' => 'User ini telah login pada perangkat lain',
+                    ], 401);
+                } else {
+                    if ($getPasien->no_ktp == 0) {
+                        return response()->json([
+                            'success' => true,
+                            'status' => true,
+                            'id' => $getUser->id,
+                            'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
+                        ]);
+                    } else {
+
+                        return response()->json([
+                            'success' => true,
+                            'status' => false,
+                            'id' => $getUser->id,
+                            'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
+                        ]);
+
+                    }
+
 
                 }
 
+            }
+
+        }else{
+            $input = $request->only('email', 'password');
+            $jwt_token = null;
+
+
+            JWTAuth::factory()->setTTL(999999999999999999);
+            if (!$jwt_token = JWTAuth::attempt($input)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid Email atau Password',
+                ], 401);
+            } else {
+                $getUser = User::where('email', $request->email)->first();
+                $getPasien = Pasien::where('id_user', $getUser->id)->first();
+
+                if ($getUser->login == 1) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'User ini telah login pada perangkat lain',
+                    ], 401);
+                } else {
+                    if ($getPasien->no_ktp == 0) {
+                        return response()->json([
+                            'success' => true,
+                            'status' => true,
+                            'id' => $getUser->id,
+                            'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
+                        ]);
+                    } else {
+
+                        return response()->json([
+                            'success' => true,
+                            'status' => false,
+                            'id' => $getUser->id,
+                            'token' => $jwt_token,
+                            'expires_in' => JWTAuth::factory()->getTTL() * 60
+                        ]);
+
+                    }
+
+
+                }
 
             }
 
@@ -370,5 +528,11 @@ class ApiController extends Controller
             'data' => $data,
             'status' => 'ok'
         ]);
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
+        $user->notify(new HelloUser());
     }
 }

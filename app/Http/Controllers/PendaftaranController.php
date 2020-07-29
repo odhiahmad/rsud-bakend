@@ -355,6 +355,7 @@ class PendaftaranController extends Controller
         $jamKunjunganLabelSub = substr($request->pilihJamLabel, 0, 3);
         $jamKunjunganLabel = $jamKunjunganLabelSub . $jamAntrian . ':00';
         $jam = substr($request->tanggalKunjungan, 11, 8);
+        $tanggalDaftarCek = substr($request->tanggalDaftar, 0, 9);
         $tanggalDaftar = $tanggal . ' ' . $request->jamKunjungan;
         if ($request->noBpjs != null) {
             $cekBpjsDaftar = Pendaftaran::where(['tanggal_kunjungan' => $tanggal, 'no_bpjs' => $request->noBpjs])->count();
@@ -389,7 +390,7 @@ class PendaftaranController extends Controller
                         $pendaftaran->no_jaminan = $request->nomorRujukan;
                         $pendaftaran->id_kelas = $request->idKelas;
                         $pendaftaran->kelas_layanan = $request->kelas;
-                        $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
+                        $pendaftaran->tanggal_daftar = $tanggalDaftarCek;
 
                         if ($pendaftaran->save()) {
                             return [
@@ -455,7 +456,7 @@ class PendaftaranController extends Controller
                     $pendaftaran->jam_kunjunganAntrian = $jamKunjunganLabel;
                     $pendaftaran->namaDokterJaga = $request->pilihDokter;
                     $pendaftaran->status_berobat = 'Mendaftar';
-                    $pendaftaran->tanggal_daftar = $request->tanggalDaftar;
+                    $pendaftaran->tanggal_daftar = $tanggalDaftarCek;
                     if ($pendaftaran->save()) {
                         return [
                             'message' => 'Berhasil Mendaftar',

@@ -13,9 +13,12 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::post('user/lupaPassword', 'ApiController@lupaPassword');
 Route::get('user/generateJam', 'PolyController@generateJam');
 Route::post('user/login', 'ApiController@login');
 Route::post('user/create', 'ApiController@register');
+Route::post('user/kirimOtp', 'ApiController@kirimOtp');
+
 Route::get('user/ruangan', 'BedMonitoringController@indexRuangan');
 Route::post('user/detailRuangan', 'BedMonitoringController@index');
 

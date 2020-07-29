@@ -122,6 +122,11 @@
       <path value="$PROJECT_DIR$/vendor/carlos-meneses/laravel-mpdf" />
       <path value="$PROJECT_DIR$/vendor/brozot/laravel-fcm" />
       <path value="$PROJECT_DIR$/vendor/edwinhoksberg/php-fcm" />
+      <path value="$PROJECT_DIR$/vendor/laravel/ui" />
+      <path value="$PROJECT_DIR$/vendor/gateway/docs" />
+      <path value="$PROJECT_DIR$/vendor/gateway/lib" />
+      <path value="$PROJECT_DIR$/vendor/yugo/smsgateway" />
+      <path value="$PROJECT_DIR$/vendor/mashape/unirest-php" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.1" />

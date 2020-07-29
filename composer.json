@@ -20,10 +20,12 @@
         "laravel/framework": "5.8.*",
         "laravel/socialite": "^4.3",
         "laravel/tinker": "^1.0",
+        "laravel/ui": "^1.2",
         "mpdf/mpdf": "^8.0",
         "simplesoftwareio/simple-qrcode": "^2.0",
         "spatie/laravel-medialibrary": "^7.0.0",
-        "tymon/jwt-auth": "dev-develop"
+        "tymon/jwt-auth": "dev-develop",
+        "yugo/smsgateway": "^1.4"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",

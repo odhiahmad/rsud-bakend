@@ -102,15 +102,18 @@ class sendNotif extends Command
                 }
             }
 
-            $oldDate = max($tanggalExp);
+            if(count($tanggalExp) != 0){
+                $oldDate = max($tanggalExp);
 
-            if($oldDate <= $getDate){
-                $notifObat = new Pendaftaran();
-                $data = [
-                    'status_berobat' => 'Selesai Notif'
-                ];
-                $notifObat->where('idx', $pendaftaran->idx)->update($data);
+                if($oldDate <= $getDate){
+                    $notifObat = new Pendaftaran();
+                    $data = [
+                        'status_berobat' => 'Selesai Notif'
+                    ];
+                    $notifObat->where('idx', $pendaftaran->idx)->update($data);
+                }
             }
+
 
             if ($getNotifikasiJumlah <= 50) {
                 $notifikasi = new Notifikasi();

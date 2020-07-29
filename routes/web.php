@@ -17,3 +17,7 @@ Route::get('/', function () {
 
 Route::get('/pegawai', 'PegawaiController@index');
 Route::get('/pegawai/cetak_pdf', 'PendaftaranController@CetakLaporan');
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
