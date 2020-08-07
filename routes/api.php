@@ -23,6 +23,8 @@ Route::get('user/ruangan', 'BedMonitoringController@indexRuangan');
 Route::post('user/detailRuangan', 'BedMonitoringController@index');
 
 Route::get('user/poly', 'PolyController@indexPoly');
+Route::get('user/polyPengaduan', 'PolyController@indexPolyPengaduan');
+
 Route::post('user/polyDetail', 'PolyController@indexPolyDetail');
 Route::post('user/polyDetailHari', 'PolyController@indexPolyDetailHari');
 
@@ -90,14 +92,19 @@ Route::group(['middleware' => 'jwt.verify'], function () {
 
     Route::post('user/pengaduan', 'PengaduanController@index');
     Route::post('user/inputPengaduan', 'PengaduanController@inputPengaduan');
+    Route::post('user/getPendaftaranSelesai', 'PengaduanController@getPendaftaranSelesai');
 
     Route::post('user/getNotifikasi', 'ApiController@getNotifikasi');
     Route::post('user/getDataDashboard', 'ApiController@getDataDashboard');
 
     Route::post('user/getNotifikasiObat', 'NotifikasiObatController@index');
+    Route::post('user/getNotifikasiObatRiwayat', 'NotifikasiObatController@indexRiwayat');
     Route::post('user/getNotifikasiObatDetail', 'NotifikasiObatController@indexDetail');
 
     Route::post('user/editProfilApi', 'ApiPendaftaranController@indexEditProfil');
     Route::post('user/indexLengkapiProfil', 'ApiPendaftaranController@indexLengkapiProfil');
+
+    Route::post('user/inputPenilaian', 'RatingPelayananController@inputPenilaian');
+
 
 });

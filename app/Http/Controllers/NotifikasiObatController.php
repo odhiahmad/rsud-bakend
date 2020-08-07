@@ -23,6 +23,18 @@ class NotifikasiObatController extends Controller
 
     }
 
+    public function indexRiwayat(Request $request)
+    {
+        $daftar = Pendaftaran::where(['idUserDaftar'=> $request->id,'status_berobat'=>'Selesai Notif'])->orderBy('created_at', 'desc');
+
+        $data = $daftar->paginate(10);
+        return [
+            'data' => $data,
+            'status' => 'ok',
+        ];
+
+    }
+
 
 
     public function indexDetail(Request $request)

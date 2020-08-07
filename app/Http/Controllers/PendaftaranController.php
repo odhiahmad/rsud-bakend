@@ -355,7 +355,7 @@ class PendaftaranController extends Controller
         $jamKunjunganLabelSub = substr($request->pilihJamLabel, 0, 3);
         $jamKunjunganLabel = $jamKunjunganLabelSub . $jamAntrian . ':00';
         $jam = substr($request->tanggalKunjungan, 11, 8);
-        $tanggalDaftarCek = substr($request->tanggalDaftar, 0, 9);
+        $tanggalDaftarCek = substr($request->tanggalDaftar, 0, 10);
         $tanggalDaftar = $tanggal . ' ' . $request->jamKunjungan;
         if ($request->noBpjs != null) {
             $cekBpjsDaftar = Pendaftaran::where(['tanggal_kunjungan' => $tanggal, 'no_bpjs' => $request->noBpjs])->count();

@@ -6,7 +6,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Pengaduan extends Model
+class Layanan  extends Model
 {
-    protected $table = 'trx_pengaduan';
+    protected $table = 'stx_layanan';
 }

@@ -137,7 +137,7 @@ class ApiController extends Controller
         }else{
             return response()->json([
                 'success' => false,
-                'message' => $getNohp
+                'message' => 'No HP ini telah terdaftar'
             ], 200);
         }
 

@@ -24,6 +24,17 @@ class PolyController extends Controller
 
     }
 
+    public function indexPolyPengaduan()
+    {
+        $ruangan = Poly::all();
+
+        return [
+            'data' => $ruangan,
+            'status' => 'ok'
+        ];
+
+    }
+
 
     public function indexPolyDetail(Request $request)
     {
