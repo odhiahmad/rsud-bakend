@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 
 use App\Pasien;
+use App\Pendaftaran;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -210,6 +211,11 @@ class PasienController extends Controller
         $tahunLahir = substr($request->tanggalLahir, 0, 10);
 
         $pasien = new Pasien();
+        $user = new User();
+
+        $data1 = [
+            'status' => 0
+        ];
 
         $data = [
             'jns_kelamin' => $request->jenisKelamin,
@@ -233,7 +239,7 @@ class PasienController extends Controller
             'no_bpjs' => $request->noBpjs,
         ];
 
-        if ($pasien->where('id_user', $request->id)->update($data)) {
+        if ($pasien->where('id_user', $request->id)->update($data) && $user->where('id',$request->id)->update($data1)) {
             return response()->json([
                 'success' => true,
                 'message' => 'Selamat data profil anda sudah diinputkan'
@@ -271,5 +277,38 @@ class PasienController extends Controller
         }
 
 
+    }
+
+    public function cekKondisiRawatJalan(Request $request){
+        $cekNomorMr = Pasien::where('nomr', $request->nomorMr)->count();
+
+        if ($cekNomorMr === 1) {
+            $getNomor = Pasien::where('nomr', $request->nomorMr)->first();
+            $tahunLahir = substr($getNomor->tgl_lahir, 0, 4);
+            $pendaftaran = Pendaftaran::where('nomr',$request->nomorMr)->orderBy('created_at','desc')->get();
+
+            if ($tahunLahir == $request->tahunLahir) {
+                return [
+                    'message' => 'Nomor MR Ditemukan',
+                    'data' => $getNomor,
+                    'dataBerobat' => $pendaftaran,
+                    'image' => asset('img/profile/' . $getNomor['foto']),
+                    'success' => true
+                ];
+            } else {
+                return [
+                    'message' => 'Tahun Lahir Salah',
+                    'data' => [],
+                    'success' => false
+                ];
+            }
+
+        } else {
+            return [
+                'message' => 'Nomor MR Tidak Ditemukan',
+                'data' => [],
+                'success' => false
+            ];
+        }
     }
 }

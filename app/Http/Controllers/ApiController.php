@@ -204,6 +204,7 @@ class ApiController extends Controller
                 $user->email = $request->email;
                 $user->password = Hash::make($request->password);
                 $user->no_hp = $request->no_hp;
+                $user->status = $request->status;
 
 
                 if ($user->save()) {
@@ -328,7 +329,7 @@ class ApiController extends Controller
                         'message' => 'User ini telah login pada perangkat lain',
                     ], 401);
                 } else {
-                    if ($getPasien->no_ktp == 0) {
+                    if ($getUser->status == 1) {
                         return response()->json([
                             'success' => true,
                             'status' => true,
@@ -337,7 +338,6 @@ class ApiController extends Controller
                             'expires_in' => JWTAuth::factory()->getTTL() * 60
                         ]);
                     } else {
-
                         return response()->json([
                             'success' => true,
                             'status' => false,
@@ -374,7 +374,7 @@ class ApiController extends Controller
                         'message' => 'User ini telah login pada perangkat lain',
                     ], 401);
                 } else {
-                    if ($getPasien->no_ktp == 0) {
+                    if ($getUser->status == 1) {
                         return response()->json([
                             'success' => true,
                             'status' => true,

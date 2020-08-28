@@ -52,7 +52,8 @@ Route::get('user/step1', 'ApiPendaftaranController@indexStep1');
 Route::get('user/step2', 'ApiPendaftaranController@indexStep2');
 Route::get('user/indexPendaftaranOnlineBaru', 'ApiPendaftaranController@indexPendaftaranOnlineBaru');
 
-
+Route::post('user/shuttleDetail', 'ShuttleBusController@shuttleDetail');
+Route::post('user/shuttleRute', 'ShuttleBusController@shuttleRute');
 Route::get('user/caraBayar', 'CaraBayarController@index');
 
 Route::get('user/bahasa', 'BahasaController@index');
@@ -81,6 +82,11 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::post('user/daftar', 'PendaftaranController@daftar');
     Route::post('user/daftarPasienBaru', 'PendaftaranController@daftarPasienBaru');
     Route::post('user/getRiwayatPendaftaran', 'PendaftaranController@index');
+
+    Route::post('user/cariNomorMrCekRawatJalan', 'PasienController@cekKondisiRawatJalan');
+
+
+
 
     Route::post('user/updatePassword', 'PasienController@updatePassword');
     Route::post('user/updateProfilLengkapiPendaftaran', 'PasienController@updateProfilLengkapiPendaftaran');

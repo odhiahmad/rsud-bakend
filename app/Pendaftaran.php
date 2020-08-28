@@ -14,5 +14,9 @@ class Pendaftaran extends Model
         return $this->hasMany('App\Pasien',"nomr","idUserDaftar");
     }
 
+    public function getUserRating() {
+        return $this->hasOne('App\RatingPelayanan',"id_pendaftaran","idx");
+    }
+
 }
 

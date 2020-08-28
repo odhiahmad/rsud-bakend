@@ -30,18 +30,19 @@ class RatingPelayananController extends Controller
     {
 
         $rating = new RatingPelayanan();
-        $rating->id_user = $request->idUser;
-        $rating->id_pendaftaran = $request->idPendaftaran;
-        $rating->rating = $request->rating;
-        $rating->catatan = $request->catatan;
-
         $pendaftaran = new Pendaftaran();
+
+        $dataRating = [
+            'rating' => $request->rating,
+            'catatan' => $request->catatan,
+            'status' => 2
+        ];
 
         $data = [
             'status_berobat' => 'Selesai',
         ];
 
-        if ($rating->save() && $pendaftaran->where('idx', $request->idPendaftaran)->update($data)) {
+        if ($rating->where('id', $request->idRating)->update($dataRating) && $pendaftaran->where('idx', $request->idPendaftaran)->update($data)) {
             return response()->json([
                 'data' => $rating,
                 'success' => true,

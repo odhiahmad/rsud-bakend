@@ -85,4 +85,22 @@ class ShuttleBusController extends Controller
 
 
     }
+
+    public function shuttleDetail(Request $request){
+        $shuttleDetail = ShuttleBusDetail::where(['id_shuttle_bus'=>$request->id_shuttle,'id_trip'=>$request->id_trip])->get();
+        return [
+            'data' => $shuttleDetail,
+            'status' => 'ok'
+
+        ];
+    }
+
+    public function shuttleRute(Request $request){
+        $shuttleDetail = ShuttleBusTrip::where(['id_shuttle_bus'=>$request->id_shuttle])->get();
+        return [
+            'data' => $shuttleDetail,
+            'status' => 'ok'
+
+        ];
+    }
 }
