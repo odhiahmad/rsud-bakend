@@ -52,8 +52,12 @@ Route::get('user/step1', 'ApiPendaftaranController@indexStep1');
 Route::get('user/step2', 'ApiPendaftaranController@indexStep2');
 Route::get('user/indexPendaftaranOnlineBaru', 'ApiPendaftaranController@indexPendaftaranOnlineBaru');
 
-Route::post('user/shuttleDetail', 'ShuttleBusController@shuttleDetail');
+
+Route::post('user/shuttleBusPenumpang', 'ShuttleBusController@shuttleBusPenumpang');
+Route::post('user/shuttleDetailForm', 'ShuttleBusController@shuttleDetail');
 Route::post('user/shuttleRute', 'ShuttleBusController@shuttleRute');
+Route::post('user/cekKetersedianShuttle', 'ShuttleBusController@cekKetersedianShuttle');
+
 Route::get('user/caraBayar', 'CaraBayarController@index');
 
 Route::get('user/bahasa', 'BahasaController@index');
@@ -63,6 +67,8 @@ Route::get('user/negara', 'NegaraController@index');
 Route::post('user/konfirmasiNomorMr', 'PasienController@konfirmasiNomorMr');
 Route::post('user/tambahDataProfil', 'PasienController@tambahDataProfil');
 Route::post('user/cekKtp', 'PasienController@cekKtp');
+
+
 
 Route::get('user/rujukan', 'RujukanController@index');
 
@@ -79,6 +85,7 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::post('user/getNomorMrSimpan', 'PendaftaranController@getNomorMrSimpan');
     Route::post('user/simpanNomr', 'PendaftaranController@simpanNomr');
     Route::post('user/cariNomorMr', 'PendaftaranController@cariNomorMr');
+    Route::post('user/cariNomorMrDaftar', 'PendaftaranController@cariNomorMrDaftar');
     Route::post('user/daftar', 'PendaftaranController@daftar');
     Route::post('user/daftarPasienBaru', 'PendaftaranController@daftarPasienBaru');
     Route::post('user/getRiwayatPendaftaran', 'PendaftaranController@index');

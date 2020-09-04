@@ -33,7 +33,7 @@ class PendaftaranController extends Controller
 
     public function index(Request $request)
     {
-        $daftar = Pendaftaran::with('getUserRating')->where('idUserDaftar', $request->id)->orderBy('created_at', 'desc');
+        $daftar = Pendaftaran::with('getUserRating')->with('getUserShuttle')->where('idUserDaftar', $request->id)->orderBy('created_at', 'desc');
 
         $data = $daftar->paginate(10);
         return [
@@ -89,6 +89,45 @@ class PendaftaranController extends Controller
                 return [
                     'message' => 'Nomor MR Ditemukan',
                     'data' => $getNomor,
+                    'image' => asset('img/profile/' . $getNomor['foto']),
+                    'success' => true
+                ];
+            } else {
+                return [
+                    'message' => 'Tahun Lahir Salah',
+                    'data' => [],
+                    'success' => false
+                ];
+            }
+
+        } else {
+            return [
+                'message' => 'Nomor MR Tidak Ditemukan',
+                'data' => [],
+                'success' => false
+            ];
+        }
+    }
+
+    public function cariNomorMrDaftar(Request $request)
+    {
+        $cekNomorMr = Pasien::where('nomr', $request->nomorMr)->count();
+        $shuttleBus = ShuttleBus::get();
+        $shuttleBusDetail = ShuttleBusDetail::get();
+        $ruangan = Poly::where(['poly_status' => 'Aktif'])->get();
+        $caraBayar = CaraBayar::get();
+        if ($cekNomorMr === 1) {
+            $getNomor = Pasien::where('nomr', $request->nomorMr)->first();
+            $tahunLahir = substr($getNomor->tgl_lahir, 0, 4);
+
+            if ($tahunLahir == $request->tahunLahir) {
+                return [
+                    'message' => 'Nomor MR Ditemukan',
+                    'data' => $getNomor,
+                    'dataPoly' => $ruangan,
+                    'dataBayar' => $caraBayar,
+                    'shuttleBus' => $shuttleBus,
+                    'shuttleBusDetail' => $shuttleBusDetail,
                     'image' => asset('img/profile/' . $getNomor['foto']),
                     'success' => true
                 ];
@@ -422,17 +461,29 @@ class PendaftaranController extends Controller
                         $pendaftaran->kelas_layanan = $request->kelas;
                         $pendaftaran->tanggal_daftar = $tanggalDaftarCek;
 
-                        $shuttle->nama = $request->namaPasien;
-                        $shuttle->nik = $request->nomorKtp;
-                        $shuttle->id_shuttle = $request->pilihShuttleBusId;
-                        $shuttle->id_shuttle_rute = $request->pilihShuttleBusRuteId;
-                        $shuttle->id_shuttle_detail = $request->pilihShuttleBusDetailId;
-                        $shuttle->rute = $request->pilihShuttleBusRuteNama;
-                        $shuttle->jam = $request->pilihShuttleBusDetailJam;
-                        $shuttle->tempat_tunggu = $request->pilihShuttleBusDetailNama;
-                        $shuttle->tanggal = $tanggalDaftarCek;
+                        if ($request->input('pilihShuttleBusId') != null) {
+                            $pendaftaran->shuttle_bus = 1;
+                        }else{
+                            $pendaftaran->shuttle_bus = 0;
+                        }
 
-                        if ($pendaftaran->save() && $shuttle->save()) {
+                        if ($pendaftaran->save()) {
+                            if ($request->input('pilihShuttleBusId') != null) {
+                                $shuttle->id_pendaftaran = $pendaftaran->id;
+                                $shuttle->nama = $request->namaPasien;
+                                $shuttle->nik = $request->nomorKtp;
+                                $shuttle->id_shuttle = $request->pilihShuttleBusId;
+                                $shuttle->id_shuttle_rute = $request->pilihShuttleBusRuteId;
+                                $shuttle->id_shuttle_detail = $request->pilihShuttleBusDetailId;
+                                $shuttle->rute_jam = $request->pilihShuttleBusRuteNama;
+                                $shuttle->rute = $request->pilihShuttleBusNama;
+                                $shuttle->jam = $request->pilihShuttleBusDetailJam;
+                                $shuttle->tempat_tunggu = $request->pilihShuttleBusDetailNama;
+                                $shuttle->tanggal = $tanggalDaftarCek;
+                                $shuttle->save();
+                            }
+
+
                             $rating = new RatingPelayanan();
                             $rating->id_user = $request->idUser;
                             $rating->id_pendaftaran = $pendaftaran->id;
@@ -506,38 +557,48 @@ class PendaftaranController extends Controller
                     $pendaftaran->status_berobat = 'Mendaftar';
                     $pendaftaran->tanggal_daftar = $tanggalDaftarCek;
 
-                    $shuttle->nama = $request->namaPasien;
-                    $shuttle->nik = $request->nomorKtp;
-                    $shuttle->id_shuttle = $request->pilihShuttleBusId;
-                    $shuttle->id_shuttle_rute = $request->pilihShuttleBusRuteId;
-                    $shuttle->id_shuttle_detail = $request->pilihShuttleBusDetailId;
-                    $shuttle->rute = $request->pilihShuttleBusRuteNama;
-                    $shuttle->jam = $request->pilihShuttleBusDetailJam;
-                    $shuttle->tempat_tunggu = $request->pilihShuttleBusDetailNama;
-                    $shuttle->tanggal = $tanggalDaftarCek;
+                    if ($request->input('pilihShuttleBusId') != null) {
+                        $pendaftaran->shuttle_bus = 1;
+                    }else{
+                        $pendaftaran->shuttle_bus = 0;
+                    }
 
-                        if ($pendaftaran->save() && $shuttle->save()) {
+                    if ($pendaftaran->save()) {
+                        if ($request->input('pilihShuttleBusId') != null) {
+                            $shuttle->id_pendaftaran = $pendaftaran->id;
+                            $shuttle->nama = $request->namaPasien;
+                            $shuttle->nik = $request->nomorKtp;
+                            $shuttle->id_shuttle = $request->pilihShuttleBusId;
+                            $shuttle->id_shuttle_rute = $request->pilihShuttleBusRuteId;
+                            $shuttle->id_shuttle_detail = $request->pilihShuttleBusDetailId;
+                            $shuttle->rute_jam = $request->pilihShuttleBusRuteNama;
+                            $shuttle->rute = $request->pilihShuttleBusNama;
+                            $shuttle->jam = $request->pilihShuttleBusDetailJam;
+                            $shuttle->tempat_tunggu = $request->pilihShuttleBusDetailNama;
+                            $shuttle->tanggal = $tanggalDaftarCek;
+                            $shuttle->save();
+                        }
 
-                            $rating = new RatingPelayanan();
-                            $rating->id_user = $request->idUser;
-                            $rating->id_pendaftaran = $pendaftaran->id;
-                            $rating->rating = 0;
-                            $rating->status = 1;
+                        $rating = new RatingPelayanan();
+                        $rating->id_user = $request->idUser;
+                        $rating->id_pendaftaran = $pendaftaran->id;
+                        $rating->rating = 0;
+                        $rating->status = 1;
 
-                            if ($rating->save()) {
-                                return [
-                                    'message' => 'Berhasil Mendaftar',
-                                    'data' => $pendaftaran,
-                                    'success' => true
-                                ];
-                            }
-                        } else {
+                        if ($rating->save()) {
                             return [
-                                'message' => 'Gagal Mendaftar',
-                                'data' => [],
-                                'success' => false
+                                'message' => 'Berhasil Mendaftar',
+                                'data' => $pendaftaran,
+                                'success' => true
                             ];
                         }
+                    } else {
+                        return [
+                            'message' => 'Gagal Mendaftar',
+                            'data' => [],
+                            'success' => false
+                        ];
+                    }
                 } else {
                     return [
                         'message' => 'Kuota sudah penuh pada Ruang, Tanggal, dan Jam yang anda Pilih',
@@ -545,7 +606,6 @@ class PendaftaranController extends Controller
                         'success' => false
                     ];
                 }
-
             } else {
                 return [
                     'message' => 'Gagal Mendaftar, Anda sudah mendaftar di Jam, Hari, dan Poli yang sama ',

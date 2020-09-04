@@ -18,5 +18,9 @@ class Pendaftaran extends Model
         return $this->hasOne('App\RatingPelayanan',"id_pendaftaran","idx");
     }
 
+    public function getUserShuttle() {
+        return $this->hasOne('App\ShuttleBusPenumpang',"id_pendaftaran","idx");
+    }
+
 }
 
