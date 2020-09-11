@@ -31,6 +31,10 @@ Route::post('user/polyDetailHari', 'PolyController@indexPolyDetailHari');
 Route::get('user/shuttle', 'ShuttleBusController@indexShuttle');
 Route::post('user/shuttleDetail', 'ShuttleBusController@indexShuttleDetail');
 
+
+
+
+
 Route::get('user/faq', 'FaqController@index');
 
 Route::post('user/berita', 'BeritaController@index');
@@ -59,14 +63,14 @@ Route::post('user/shuttleRute', 'ShuttleBusController@shuttleRute');
 Route::post('user/cekKetersedianShuttle', 'ShuttleBusController@cekKetersedianShuttle');
 
 Route::get('user/caraBayar', 'CaraBayarController@index');
-
 Route::get('user/bahasa', 'BahasaController@index');
-
 Route::get('user/negara', 'NegaraController@index');
-
 Route::post('user/konfirmasiNomorMr', 'PasienController@konfirmasiNomorMr');
 Route::post('user/tambahDataProfil', 'PasienController@tambahDataProfil');
 Route::post('user/cekKtp', 'PasienController@cekKtp');
+
+Route::post('user/notifikasiBerita', 'NotifikasiController@notifikasiBerita');
+Route::post('user/notifikasiDokter', 'NotifikasiController@notifikasiDokter');
 
 
 
@@ -78,6 +82,7 @@ Route::post('user/liburDokter', 'ApiController@liburDokter');
 
 
 Route::group(['middleware' => 'jwt.verify'], function () {
+    Route::post('user/cekPenalti', 'PendaftaranController@cekPenalti');
     Route::post('user/updateToken', 'SendNotificationController@updateToken');
     Route::post('user/getProfilDaftar', 'PendaftaranController@getProfilDaftar');
     Route::post('user/cekDaftar', 'PendaftaranController@indexStatus');
@@ -91,9 +96,6 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::post('user/getRiwayatPendaftaran', 'PendaftaranController@index');
 
     Route::post('user/cariNomorMrCekRawatJalan', 'PasienController@cekKondisiRawatJalan');
-
-
-
 
     Route::post('user/updatePassword', 'PasienController@updatePassword');
     Route::post('user/updateProfilLengkapiPendaftaran', 'PasienController@updateProfilLengkapiPendaftaran');

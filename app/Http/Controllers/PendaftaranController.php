@@ -46,8 +46,16 @@ class PendaftaranController extends Controller
 
     public function indexStatus(Request $request)
     {
+        $tanggal3Harilalu = date('Y-m-d',strtotime("-3 days"));
+        $tanggalSekarang = date('Y-m-d');
+        $getPasien = Pasien::where('id_user',$request->id)->first();
 
         $jumlahDaftar = Pendaftaran::where(['idUserDaftar' => $request->id, 'tanggal_daftar' => date("Y-m-d")])->count();
+        $pelanggaran = Pendaftaran::where([
+            'no_ktp' => $getPasien->no_ktp,
+            'status_berobat' => 'Gagal'
+        ])->where('tanggal_kunjungan','>=',$tanggal3Harilalu)->where('tanggal_kunjungan','<=',$tanggalSekarang)->count();
+
 
         if ($jumlahDaftar >= 3) {
             return [
@@ -56,13 +64,20 @@ class PendaftaranController extends Controller
                 'success' => true,
             ];
         } else {
-            return [
-                'message' => 'Silahkan mendaftar',
-                'status' => 'ok',
-                'success' => false,
-            ];
+            if ($pelanggaran == 0) {
+                return [
+                    'message' => 'Silahkan mendaftar',
+                    'status' => 'ok',
+                    'success' => false,
+                ];
+            } else {
+                return [
+                    'message' =>  'Anda tidak bisa mendaftar berobat saat ini, akun anda sedang dikenakan Penalti',
+                    'status' => 'ok',
+                    'success' => true,
+                ];
+            }
         }
-
 
     }
 
@@ -105,6 +120,29 @@ class PendaftaranController extends Controller
                 'message' => 'Nomor MR Tidak Ditemukan',
                 'data' => [],
                 'success' => false
+            ];
+        }
+    }
+
+    public function cekPenalti(Request $request){
+        $tanggal3Harilalu = date('Y-m-d',strtotime("-3 days"));
+        $tanggalSekarang = date('Y-m-d');
+        $cekPendaftaran = Pendaftaran::where([
+            'nomr'=>$request->nomorMr,
+            'status_berobat'=>'Gagal'
+        ])->where('tanggal_kunjungan','>=',$tanggal3Harilalu)->where('tanggal_kunjungan','<=',$tanggalSekarang)->count();
+
+        if($cekPendaftaran >= 0){
+            return [
+                'message' => 'Anda tidak bisa mendaftar berobat saat ini, akun anda sedang dikenakan Penalti',
+                'data' => [],
+                'success' => false
+            ];
+        }else{
+            return [
+                'message' => 'Silahkan Mendaftar',
+                'data' => [],
+                'success' => true
             ];
         }
     }
@@ -463,7 +501,7 @@ class PendaftaranController extends Controller
 
                         if ($request->input('pilihShuttleBusId') != null) {
                             $pendaftaran->shuttle_bus = 1;
-                        }else{
+                        } else {
                             $pendaftaran->shuttle_bus = 0;
                         }
 
@@ -559,7 +597,7 @@ class PendaftaranController extends Controller
 
                     if ($request->input('pilihShuttleBusId') != null) {
                         $pendaftaran->shuttle_bus = 1;
-                    }else{
+                    } else {
                         $pendaftaran->shuttle_bus = 0;
                     }
 

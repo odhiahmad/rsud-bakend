@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         //
         Commands\sendNotif::class,
+        Commands\resetPendaftaran::class,
     ];
 
     /**
@@ -31,6 +32,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('command:sendNotif')->everyFiveMinutes();
+        $schedule->command('command:resetPendaftaran')->daily();
     }
 
     /**

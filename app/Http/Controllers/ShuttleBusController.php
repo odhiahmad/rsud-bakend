@@ -26,20 +26,21 @@ class ShuttleBusController extends Controller
 
     }
 
-    public function cekKetersedianShuttle(Request $request){
+    public function cekKetersedianShuttle(Request $request)
+    {
         $jumlahTersedia = ShuttleBusPenumpang::where([
-            'id_shuttle'=>$request->id_shuttle,
-            'id_shuttle_rute'=>$request->id_shuttle_rute,
-            'tanggal'=>$request->tanggal
+            'id_shuttle' => $request->id_shuttle,
+            'id_shuttle_rute' => $request->id_shuttle_rute,
+            'tanggal' => $request->tanggal
         ])->count();
 
-        if($jumlahTersedia <= 16){
+        if ($jumlahTersedia <= 16) {
             return [
                 'status' => 1,
                 'message' => 'Shuttle Bus Masih Tersedia'
             ];
 
-        }else{
+        } else {
             return [
                 'status' => 2,
                 'message' => 'Kuota Penumpang Telah Penuh'
@@ -104,10 +105,41 @@ class ShuttleBusController extends Controller
         }
         if ($getId != 0) {
 
-            $data = ShuttleBusDetail::where(['id_shuttle_bus' => $request->id, 'id_trip' => $getId])->get();
-            return [
-                'data' => $data,
+            $tanggal = date('Y-m-d');
+            $jam = date('H:i');
+            $jam .= ":00";
+            $tambah1 = strtotime("+20 minutes");
+            $tambah2 = strtotime("-4 minutes");
 
+            $jam1 = date("H:i", $tambah1);
+            $jam2 = date("H:i", $tambah2);
+
+            $jam1 .= ":00";
+            $jam2 .= ":00";
+
+            $shuttlePenumpang = ShuttleBusPenumpang::where([
+                'id_shuttle' => $request->id,
+                'id_shuttle_rute' =>  $getId,
+                'tanggal' => $tanggal
+            ])->groupBy('tempat_tunggu')
+                ->selectRaw('count(id_pendaftaran) as total, tempat_tunggu')->get();
+
+            $shuttleInfo = ShuttleBusPenumpang::where([
+                'id_shuttle' => $request->id,
+                'id_shuttle_rute' =>  $getId,
+                'tanggal' => $tanggal
+            ])->first();
+
+            $data = ShuttleBusDetail::where(['id_shuttle_bus' => $request->id, 'id_trip' => $getId])
+                ->where('jam','>=',$jam1)->where('jam','<=',$jam2)->limit(10)
+                ->get();
+
+
+            return [
+                'jam' => $jam,
+                'data' => $data,
+                'dataPenumpang'=>$shuttlePenumpang,
+                'dataInfo'=>$shuttleInfo,
             ];
         } else {
             return [
@@ -128,8 +160,7 @@ class ShuttleBusController extends Controller
         ];
     }
 
-    public
-    function shuttleRute(Request $request)
+    public function shuttleRute(Request $request)
     {
         $shuttleDetail = ShuttleBusTrip::where(['id_shuttle_bus' => $request->id_shuttle])->get();
         return [
@@ -139,8 +170,7 @@ class ShuttleBusController extends Controller
         ];
     }
 
-    public
-    function shuttleBusPenumpang(Request $request)
+    public function shuttleBusPenumpang(Request $request)
     {
         $tanggal = date('Y-m-d');
         $shuttlePenumpang = ShuttleBusPenumpang::where([
